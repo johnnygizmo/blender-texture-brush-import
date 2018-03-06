@@ -14,7 +14,10 @@ bl_info = {
 import bpy, os
 
 
-def read_some_data(context, filepath, ttype, mode):
+def read_some_data(context, filepath): 
+    
+    print (filepath)
+    
     file = os.path.split(filepath)[-1]
     
     if os.path.isfile(filepath):
@@ -23,13 +26,14 @@ def read_some_data(context, filepath, ttype, mode):
         image = bpy.data.images.load(filepath, False)
         tex.image = image
             
-        if ttype == "TEX":
-            brush.texture = tex
-            brush.texture_slot.tex_paint_map_mode = mode
+        #if ttype == "TEX":
+        brush.texture = tex
+        
+        #brush.texture_slot.tex_paint_map_mode = mode
                 
-        elif ttype == "TEXMASK":
-            brush.mask_texture = tex
-            brush.mask_texture_slot.tex_paint_map_mode = mode
+        #elif ttype == "TEXMASK":
+        #    brush.mask_texture = tex
+        #    brush.mask_texture_slot.tex_paint_map_mode = mode
     
         brush.use_custom_icon = True
         brush.icon_filepath = filepath
@@ -62,36 +66,37 @@ class ImportSomeData(Operator, ImportHelper):
             )
 
 
-    mode = EnumProperty(
-            name="Mapping",
-            description="Choose the mapping mode for the new brush",
-            items=(
-            
-            ('STENCIL', "Stencil",""),
-            ('RANDOM',"Random",""),
-            ('3D',  "3D",""),
-            ('TILED' , "Tiled",""),
-            ('VIEW_PLANE', "View Plane","")
-            ),
-            
-            default='STENCIL',
+#    mode = EnumProperty(
+#            name="Mapping",
+#            description="Choose the mapping mode for the new brush",
+#            items=(
+#            
+#            ('STENCIL', "Stencil",""),
+#            ('RANDOM',"Random",""),
+#            ('3D',  "3D",""),
+#            ('TILED' , "Tiled",""),
+#            ('VIEW_PLANE', "View Plane","")
+#            ),
+#            
+#            default='STENCIL',
 
-            )
-            
-    type = EnumProperty(
-            name="Tex / Mask",
-            description="Choose the slot to put the image in",
-            items=(('TEX', "Texture", "Import Image as Texture"),
-                   ('TEXMASK', "Texture Mask", "Import Image as Texture Mask")),
-            default='TEX',
+#            )
+#            
+#    type = EnumProperty(
+#            name="Tex / Mask",
+#            description="Choose the slot to put the image in",
+#            items=(('TEX', "Texture", "Import Image as Texture"),
+#                   ('TEXMASK', "Texture Mask", "Import Image as Texture Mask")),
+#            default='TEX',
 
-            )
+#            )
 #
 
 
 
     def execute(self, context):
-        return read_some_data(context, self.filepath, self.type, self.mode)
+        return read_some_data(context, self.filepath)
+    #, self.type, self.mode)
 
 
 # Only needed if you want to add into a dynamic menu
