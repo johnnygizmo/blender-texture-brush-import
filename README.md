@@ -3,4 +3,4 @@ This is a simple Blender Import script that allows you to select an image file a
 
 Future Ideas: 
 * The import screen will have extra common settings
-* Allow for multiple images at one time
+* Allow for multiple images to be selected at one time to create multiple brushes
