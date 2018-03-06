@@ -31,6 +31,9 @@ def read_some_data(context, filepath, ttype, mode):
             brush.mask_texture = tex
             brush.mask_texture_slot.tex_paint_map_mode = mode
     
+        brush.use_custom_icon = True
+        brush.icon_filepath = filepath
+        
         bpy.ops.brush.add()
         
         
