@@ -14,7 +14,7 @@ bl_info = {
 import bpy, os
 
 
-def read_some_data(context, filepath): 
+def import_brush(context, filepath, mode, ttype): 
     
     print (filepath)
     
@@ -25,21 +25,24 @@ def read_some_data(context, filepath):
         tex   = bpy.data.textures.new(file,"IMAGE")
         image = bpy.data.images.load(filepath, False)
         tex.image = image
-            
-        #if ttype == "TEX":
-        brush.texture = tex
-        
-        #brush.texture_slot.tex_paint_map_mode = mode
                 
-        #elif ttype == "TEXMASK":
-        #    brush.mask_texture = tex
-        #    brush.mask_texture_slot.tex_paint_map_mode = mode
+        if ttype == "TEX":
+            brush.texture = tex
+            brush.texture_slot.tex_paint_map_mode = mode
+        elif ttype == "TEXMASK":
+            brush.mask_texture = tex
+            brush.mask_texture_slot.tex_paint_map_mode = mode
     
         brush.use_custom_icon = True
         brush.icon_filepath = filepath
         
         bpy.ops.brush.add()
         
+# reset mask
+# bpy.ops.brush.stencil_reset_transform(mask=True)
+# bpy.ops.brush.stencil_fit_image_aspect(mask=True)
+
+
         
     return {'FINISHED'}
 
@@ -47,8 +50,8 @@ def read_some_data(context, filepath):
 # ImportHelper is a helper class, defines filename and
 # invoke() function which calls the file selector.
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty
-from bpy.types import Operator
+from bpy.props import StringProperty, BoolProperty, EnumProperty, CollectionProperty
+from bpy.types import Operator, OperatorFileListElement
 
 
 class ImportSomeData(Operator, ImportHelper):
@@ -65,39 +68,47 @@ class ImportSomeData(Operator, ImportHelper):
             maxlen=255,  # Max internal buffer length, longer would be clamped.
             )
 
+    files = CollectionProperty(
+            name="File Path",
+            type=OperatorFileListElement
+            )
+    directory = StringProperty (
+            subtype='DIR_PATH'
+    )
+  
+    mode = EnumProperty(
+            name="Mapping",
+            description="Choose the mapping mode for the new brush",
+            items=(
+            
+            ('STENCIL', "Stencil",""),
+            ('RANDOM',"Random",""),
+            ('3D',  "3D",""),
+            ('TILED' , "Tiled",""),
+            ('VIEW_PLANE', "View Plane","")
+            ),
+            
+            default='STENCIL',
 
-#    mode = EnumProperty(
-#            name="Mapping",
-#            description="Choose the mapping mode for the new brush",
-#            items=(
-#            
-#            ('STENCIL', "Stencil",""),
-#            ('RANDOM',"Random",""),
-#            ('3D',  "3D",""),
-#            ('TILED' , "Tiled",""),
-#            ('VIEW_PLANE', "View Plane","")
-#            ),
-#            
-#            default='STENCIL',
+            )
+            
+    ttype = EnumProperty(
+           name="Tex / Mask",
+           description="Choose the slot to put the image in",
+           items=(('TEX', "Texture", "Import Image as Texture"),
+                  ('TEXMASK', "Texture Mask", "Import Image as Texture Mask")),
+           default='TEX',
+           )
 
-#            )
-#            
-#    type = EnumProperty(
-#            name="Tex / Mask",
-#            description="Choose the slot to put the image in",
-#            items=(('TEX', "Texture", "Import Image as Texture"),
-#                   ('TEXMASK', "Texture Mask", "Import Image as Texture Mask")),
-#            default='TEX',
-
-#            )
-#
 
 
 
     def execute(self, context):
-        return read_some_data(context, self.filepath)
-    #, self.type, self.mode)
-
+        directory = self.directory
+        for file in self.files:
+            filepath = os.path.join(directory, file.name)
+            import_brush(context, filepath, self.mode, self.ttype)
+        return {'FINISHED'}
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
