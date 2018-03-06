@@ -1,6 +1,7 @@
-This is a simple Blender Import script that allows you to select an image file and have it loaded into a new texture brush. You can choose if it will be the TEXTURE or MASK TEXTURE image and also the mapping mode.
+This is a simple Blender Import script that allows you to select an image files and have them loaded into a new texture brushes. 
+
+You can choose if they will be the TEXTURE or MASK TEXTURE image and also the mapping mode.
 
 
 Future Ideas: 
-* The import screen will have extra common settings
-* Allow for multiple images to be selected at one time to create multiple brushes
+* The import screen will have additional common settings for the bruses (default strength, raking, etc)
