@@ -5,7 +5,7 @@ bl_info = {
     "version": (0, 0, 1),
     "blender": (2, 79, 0),
     "location": "File > Import",
-    "warning": "", # used for warning icon and text in addons panel
+    "warning": "",
     "wiki_url": "",
     "tracker_url": "",
     "category": "Import-Export"
@@ -13,34 +13,35 @@ bl_info = {
 
 import bpy, os
 
-
-def import_brush(context, filepath, mode, ttype): 
-    
-    print (filepath)
+def import_brush(context, filepath, options):     
     
     file = os.path.split(filepath)[-1]
     
     if os.path.isfile(filepath):
-        brush = bpy.data.brushes.new(file,"TEXTURE_PAINT")
+        brush = bpy.data.brushes.new(file,options.brush_type)
         tex   = bpy.data.textures.new(file,"IMAGE")
         image = bpy.data.images.load(filepath, False)
         tex.image = image
                 
-        if ttype == "TEX":
+        if options.brush_type == "SCULPT":
             brush.texture = tex
-            brush.texture_slot.tex_paint_map_mode = mode
-        elif ttype == "TEXMASK":
-            brush.mask_texture = tex
-            brush.mask_texture_slot.tex_paint_map_mode = mode
+            brush.texture_slot.tex_paint_map_mode = options.mode           
+        
+        elif options.brush_type == "TEXTURE_PAINT":        
+            if options.ttype == "TEX":
+                brush.texture = tex
+                brush.texture_slot.tex_paint_map_mode = options.mode
+            elif options.ttype == "TEXMASK":
+                brush.mask_texture = tex
+                brush.mask_texture_slot.tex_paint_map_mode = options.mode
     
         brush.use_custom_icon = True
         brush.icon_filepath = filepath
+        brush.strength = options.default_strength
+        brush.blend = options.blend
         
         bpy.ops.brush.add()
-        
-# reset mask
-# bpy.ops.brush.stencil_reset_transform(mask=True)
-# bpy.ops.brush.stencil_fit_image_aspect(mask=True)
+
 
 
         
@@ -50,7 +51,7 @@ def import_brush(context, filepath, mode, ttype):
 # ImportHelper is a helper class, defines filename and
 # invoke() function which calls the file selector.
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty, CollectionProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, CollectionProperty, FloatProperty
 from bpy.types import Operator, OperatorFileListElement
 
 
@@ -63,34 +64,48 @@ class ImportSomeData(Operator, ImportHelper):
     filename_ext = ".png"
 
     filter_glob = StringProperty(
-            default="*.png",
-            options={'HIDDEN'},
-            maxlen=255,  # Max internal buffer length, longer would be clamped.
-            )
+        default="*.png",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
 
     files = CollectionProperty(
-            name="File Path",
-            type=OperatorFileListElement
-            )
+        name="File Path",
+        type=OperatorFileListElement
+    )
     directory = StringProperty (
-            subtype='DIR_PATH'
+        subtype='DIR_PATH'
     )
   
-    mode = EnumProperty(
-            name="Mapping",
-            description="Choose the mapping mode for the new brush",
-            items=(
-            
-            ('STENCIL', "Stencil",""),
-            ('RANDOM',"Random",""),
-            ('3D',  "3D",""),
-            ('TILED' , "Tiled",""),
-            ('VIEW_PLANE', "View Plane","")
-            ),
-            
-            default='STENCIL',
+    default_strength = FloatProperty (
+        default = 0.5,
+        soft_min = 0.0,
+        soft_max = 1.0 
 
-            )
+    )
+    brush_type = EnumProperty(
+        name="Brush Type",
+        description="Choose the Type of Brush",
+        items=(
+            ('TEXTURE_PAINT', "Texture Paint","Create a texture paint brush"),
+            ('SCULPT',"Sculpt","Create a Sculpting brush")
+        ),
+        default='TEXTURE_PAINT',
+
+    ) 
+  
+    mode = EnumProperty(
+        name="Mapping",
+        description="Choose the mapping mode for the new brush",
+        items=(
+            ('STENCIL', "Stencil","Set the texture to Stencil mode."),
+            ('RANDOM',"Random","Set the texture to Random mode."),
+            ('3D',  "3D","Set the texture to 3D mode."),
+            ('TILED' , "Tiled","Set the texture to Tiled mode."),
+            ('VIEW_PLANE', "View Plane","Set the texture to View Plane mode.")
+        ),
+        default='TILED'
+    )
             
     ttype = EnumProperty(
            name="Tex / Mask",
@@ -100,14 +115,44 @@ class ImportSomeData(Operator, ImportHelper):
            default='TEX',
            )
 
-
+    blend = EnumProperty(
+        name = "Blend Mode",
+        description="default blending mode",
+        default = 'MIX',
+        items=(
+            ('MIX'," Mix", "Use mix blending mode while painting."),
+            ('ADD',"Add", "Use add blending mode while painting."),
+            ('SUB',"Subtract", "Use subtract blending mode while painting."),
+            ('MUL',"Multiply", "Use multiply blending mode while painting."),
+            ('LIGHTEN',"Lighten", "Use lighten blending mode while painting."),
+            ('DARKEN',"Darken", "Use darken blending mode while painting."),
+            ('ERASE_ALPHA',"Erase Alpha", "Erase alpha while painting."),
+            ('ADD_ALPHA',"Add Alpha", "Add alpha while painting."),
+            ('OVERLAY',"Overlay", "Use overlay blending mode while painting."),
+            ('HARDLIGHT',"Hard light", "Use hard light blending mode while painting."),
+            ('COLORBURN',"Color burn", "Use color burn blending mode while painting."),
+            ('LINEARBURN',"Linear burn", "Use linear burn blending mode while painting."),
+            ('COLORDODGE',"Color dodge", "Use color dodge blending mode while painting."),
+            ('SCREEN',"Screen", "Use screen blending mode while painting."),
+            ('SOFTLIGHT',"Soft light", "Use softlight blending mode while painting."),
+            ('PINLIGHT',"Pin light", "Use pinlight blending mode while painting."),
+            ('VIVIDLIGHT',"Vivid light", "Use vividlight blending mode while painting."),
+            ('LINEARLIGHT',"Linear light", "Use linearlight blending mode while painting."),
+            ('DIFFERENCE',"Difference", "Use difference blending mode while painting."),
+            ('EXCLUSION',"Exclusion", "Use exclusion blending mode while painting."),
+            ('HUE',"Hue", "Use hue blending mode while painting."),
+            ('SATURATION',"Saturation", "Use saturation blending mode while painting."),
+            ('LUMINOSITY',"Luminosity", "Use luminosity blending mode while painting."),
+            ('COLOR',"Color", "Use color blending mode while painting.")
+        )
+    )
 
 
     def execute(self, context):
         directory = self.directory
         for file in self.files:
             filepath = os.path.join(directory, file.name)
-            import_brush(context, filepath, self.mode, self.ttype)
+            import_brush(context, filepath, self)
         return {'FINISHED'}
 
 # Only needed if you want to add into a dynamic menu
@@ -130,3 +175,5 @@ if __name__ == "__main__":
 
     # test call
     bpy.ops.import_test.some_data('INVOKE_DEFAULT')
+
+    
