@@ -3,7 +3,7 @@ bl_info = {
     "description": "Import an Image into a texture brush",
     "author": "",
     "version": (0, 0, 1),
-    "blender": (2, 79, 0),
+    "blender": (2, 90, 1),
     "location": "File > Import",
     "warning": "",
     "wiki_url": "",
@@ -18,9 +18,9 @@ def import_brush(context, filepath, options):
     file = os.path.split(filepath)[-1]
 
     if os.path.isfile(filepath):
-        brush = bpy.data.brushes.new(file,options.brush_type)
-        tex   = bpy.data.textures.new(file,"IMAGE")
-        image = bpy.data.images.load(filepath, False)
+        brush = bpy.data.brushes.new(file,mode=options.brush_type)
+        tex   = bpy.data.textures.new(file,type="IMAGE")
+        image = bpy.data.images.load(filepath, check_existing=False)
         tex.image = image
 
         if options.brush_type == "SCULPT":
@@ -39,11 +39,6 @@ def import_brush(context, filepath, options):
         brush.icon_filepath = filepath
         brush.strength = options.default_strength
         brush.blend = options.blend
-
-        bpy.ops.brush.add()
-
-
-
 
     return {'FINISHED'}
 
@@ -64,7 +59,7 @@ class ImportSomeData(Operator, ImportHelper):
     filename_ext = ".png"
 
     filter_glob = StringProperty(
-        default="*.png",
+        default="*.png;*.jpg;*.jpeg;*.tif;*.tiff",
         options={'HIDDEN'},
         maxlen=255,  # Max internal buffer length, longer would be clamped.
     )
@@ -162,12 +157,12 @@ def menu_func_import(self, context):
 
 def register():
     bpy.utils.register_class(ImportSomeData)
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 
 def unregister():
     bpy.utils.unregister_class(ImportSomeData)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 
 if __name__ == "__main__":
