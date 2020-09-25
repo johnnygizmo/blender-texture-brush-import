@@ -13,38 +13,38 @@ bl_info = {
 
 import bpy, os
 
-def import_brush(context, filepath, options):     
-    
+def import_brush(context, filepath, options):
+
     file = os.path.split(filepath)[-1]
-    
+
     if os.path.isfile(filepath):
         brush = bpy.data.brushes.new(file,options.brush_type)
         tex   = bpy.data.textures.new(file,"IMAGE")
         image = bpy.data.images.load(filepath, False)
         tex.image = image
-                
+
         if options.brush_type == "SCULPT":
             brush.texture = tex
-            brush.texture_slot.tex_paint_map_mode = options.mode           
-        
-        elif options.brush_type == "TEXTURE_PAINT":        
+            brush.texture_slot.tex_paint_map_mode = options.mode
+
+        elif options.brush_type == "TEXTURE_PAINT":
             if options.ttype == "TEX":
                 brush.texture = tex
                 brush.texture_slot.tex_paint_map_mode = options.mode
             elif options.ttype == "TEXMASK":
                 brush.mask_texture = tex
                 brush.mask_texture_slot.tex_paint_map_mode = options.mode
-    
+
         brush.use_custom_icon = True
         brush.icon_filepath = filepath
         brush.strength = options.default_strength
         brush.blend = options.blend
-        
+
         bpy.ops.brush.add()
 
 
 
-        
+
     return {'FINISHED'}
 
 
@@ -76,11 +76,11 @@ class ImportSomeData(Operator, ImportHelper):
     directory = StringProperty (
         subtype='DIR_PATH'
     )
-  
+
     default_strength = FloatProperty (
         default = 0.5,
         soft_min = 0.0,
-        soft_max = 1.0 
+        soft_max = 1.0
 
     )
     brush_type = EnumProperty(
@@ -92,8 +92,8 @@ class ImportSomeData(Operator, ImportHelper):
         ),
         default='TEXTURE_PAINT',
 
-    ) 
-  
+    )
+
     mode = EnumProperty(
         name="Mapping",
         description="Choose the mapping mode for the new brush",
@@ -106,7 +106,7 @@ class ImportSomeData(Operator, ImportHelper):
         ),
         default='TILED'
     )
-            
+
     ttype = EnumProperty(
            name="Tex / Mask",
            description="Choose the slot to put the image in",
@@ -174,4 +174,3 @@ if __name__ == "__main__":
     register()
     bpy.ops.import_test.some_data('INVOKE_DEFAULT')
 
-    
